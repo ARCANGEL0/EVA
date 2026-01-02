@@ -17,7 +17,7 @@ except ImportError:
     subprocess.run([sys.executable, "-m", "pip", "install", "colorama", "--break-system-packages"])
     subprocess.run([sys.executable, "-m", "pip", "install", "openai","--break-system-packages"])
     from colorama import Fore, Style, init
-    from openai import OpenAI
+    import openai
 
 
 init(autoreset=True)
@@ -438,17 +438,19 @@ class Eva:
         self.session_path = session_path
         self.last_output = ""
         self.backend = backend
+        self.sessionName = self.session_path.stem
         self.memory = {
           "backend": backend,
           "timeline": []
-        }   
+        }
         if session_path.exists():
             self.memory = json.loads(session_path.read_text())
             self.backend = self.memory.get("backend", backend)
-        
+
         self.model = LLM(self.backend)
     def save(self):
         self.session_path.write_text(json.dumps(self.memory, indent=2))
+        
     def change_model_menu(self):
             """
             Model menu during session
@@ -473,13 +475,45 @@ class Eva:
             elif sel == 2:
                 self.backend = "g4f"
                 self.memory["backend"] = self.backend
-                self.save()                
+                self.save()
             elif sel == 3:
                 self.backend = "api"
                 checkAPI()
                 self.memory["backend"] = self.backend
                 self.save()
             self.model = LLM(self.backend)
+
+    def rename_session(self):
+        cyber("Type in the desired name for this session")
+        new_name = raw_input("⯁⮞ ").strip()
+        if not new_name:
+            cyber("[!] Session name cannot be empty.", color=Fore.RED)
+            return
+        if new_name == self.sessionName:
+            cyber("[!] New name is the same as current name.", color=Fore.YELLOW)
+            return
+        # 
+        invalid_chars = '<>:"/\\|?*'
+        if any(char in new_name for char in invalid_chars):
+            cyber("[!] Invalid characters in name. Avoid < > : \" / \\ | ? *", color=Fore.RED)
+            return
+        new_path = SESSIONS_DIR / f"{new_name}.json"
+        if new_path.exists():
+            cyber("[!] A session with that name already exists.", color=Fore.YELLOW)
+            return
+        # Rename the session file
+        self.session_path.rename(new_path)
+        self.session_path = new_path
+        self.sessionName = new_name
+        self.save()
+        cyber(f"Session renamed to {new_name}", color=Fore.GREEN)
+
+        # Rename the fsession file
+        self.session_path.rename(new_path)
+        self.session_path = new_path
+        self.sessionName = new_name
+        self.save()
+        cyber(f" [ ✔ ] Session renamed to {new_name}", color=Fore.GREEN)
 
     def run_command(self, cmd):
         cyber(f"EXECUTING → {cmd}")
@@ -509,10 +543,11 @@ class Eva:
 
     def chat(self):
         os.system("clear")
-        cyber(":: EVA ONLINE :: ")
-        print(Fore.GREEN + "ᐉ ˹E˼xploit ˹V˼ector ˹A˼gent :⦀: Current Model: " + Fore.YELLOW + self.backend)
+        cyber(":: 🍎 EVA ONLINE :: ")
+        print(Fore.GREEN + "⯁⮞ ˹E˼xploit ˹V˼ector ˹A˼gent \n⬢  Current Model: " + Fore.CYAN + self.backend + f"\n{Fore.GREEN}𖨠 Session Name: " + Fore.YELLOW + self.sessionName)
         print(Fore.RED + "/// type /exit to quit the program anytime")
         print(Fore.RED + "/// type /model to change current model")
+        print(Fore.RED + "/// type /rename to change a session name")
         print(Fore.RED + "/// type /menu to go back to sessions menu\n\n")
         for item in self.memory["timeline"]:
             if item["type"] == "user":
@@ -533,13 +568,37 @@ class Eva:
                 graceful_exit()
             if user.lower() in ("menu", "/menu"):
                 return main()
+            if user.lower() in ("rename", "/rename"):
+                self.rename_session()
+                os.system("clear")
+                cyber(":: 🍎 EVA ONLINE :: ")
+                print(Fore.GREEN + "⯁⮞ ˹E˼xploit ˹V˼ector ˹A˼gent \n⬢  Current Model: " + Fore.CYAN + self.backend + f"\n{Fore.GREEN}𖨠 Session Name: " + Fore.YELLOW + self.sessionName)
+                print(Fore.RED + "/// type /exit to quit the program anytime")
+                print(Fore.RED + "/// type /model to change current model")
+                print(Fore.RED + "/// type /rename to change a session name")
+                print(Fore.RED + "/// type /menu to go back to sessions menu\n\n")
+                for item in self.memory["timeline"]:
+                    if item["type"] == "user":
+                        print(Fore.GREEN + f"{username.upper()} > {item['content']}\n")
+
+                    elif item["type"] == "analysis":
+                        cyber("ANALYSIS", color=Fore.MAGENTA)
+                        print(item["content"] + "\n")
+
+                    elif item["type"] == "command":
+                        cyber(f"EXECUTED → {item['cmd']}", color=Fore.CYAN)
+                        print(item["output"] + "\n")
+                continue
+
+  
             if user.lower() in ("model", "/model"):
                 self.change_model_menu()
                 os.system("clear")
-                cyber(":: EVA ONLINE :: ")
-                print(Fore.GREEN + "ᐉ ˹E˼xploit ˹V˼ector ˹A˼gent :⦀: Current Model: " + Fore.YELLOW + self.backend)
+                cyber(":: 🍎 EVA ONLINE :: ")
+                print(Fore.GREEN + "⯁⮞ ˹E˼xploit ˹V˼ector ˹A˼gent \n⬢  Current Model: " + Fore.CYAN + self.backend + f"\n{Fore.GREEN}𖨠 Session Name: " + Fore.YELLOW + self.sessionName)
                 print(Fore.RED + "/// type /exit to quit the program anytime")
                 print(Fore.RED + "/// type /model to change current model")
+                print(Fore.RED + "/// type /rename to change a session name")
                 print(Fore.RED + "/// type /menu to go back to sessions menu\n\n")
                 for item in self.memory["timeline"]:
                     if item["type"] == "user":

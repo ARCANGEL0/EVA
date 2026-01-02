@@ -197,6 +197,7 @@ python3 eva.py
 |---------|-------------|
 | `/exit` / `/quit` | Exit EVA and save session |
 | `/model` | Change AI backend |
+| `/rename` | Rename the current session |
 | `/menu` | Return to session menu |
 | `R` | Run suggested command |
 | `S` | Skip command |
