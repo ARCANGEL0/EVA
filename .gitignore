@@ -1,0 +1,35 @@
+# Project local artifacts
+make_release
+release.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+ENV/
+
+# Env/config secrets files
+.env
+.env.*
+
+# Tooling/CI metadata
+.trunk/
+.github/
+
+# OS files
+.DS_Store
+Thumbs.db
